@@ -607,14 +607,14 @@ This project fulfills all CIS6003 assessment requirements:
 ---
 
 **Version:** 1.0.0  
-**Last Updated:** January 2026
+**Last Updated:** February 2026
 **Status:** ✅ Complete and Ready for Submission
 
 ---
 
 <div align="center">
 
-**Built with ❤️ using Pure Java**
+
 
 [⬆ Back to Top](#ocean-view-resort---room-reservation-system)
 
