@@ -10,10 +10,12 @@ public class BillServlet extends Servlet {
     
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        if ("GET".equals(request.getMethod())) {
+        String method = request.getMethod();
+        
+        if ("GET".equals(method)) {
             doGet(request, response);
         } else {
-            response.sendError(405, "Method " + request.getMethod() + " not allowed");
+            response.sendError(405, "Method " + method + " not allowed");
         }
     }
     
@@ -22,6 +24,7 @@ public class BillServlet extends Servlet {
         try {
             String path = request.getPath();
             
+            // GET /api/bill/{reservationNumber} - Get bill for reservation
             if (path.startsWith("/api/bill/") || path.startsWith("/bill/")) {
                 String reservationNumber = extractPathParameter(path, "/api/bill/", "/bill/");
                 
@@ -31,12 +34,14 @@ public class BillServlet extends Servlet {
                     return;
                 }
                 
+                // Calculate bill
                 String bill = reservationService.calculateBill(reservationNumber);
                 
                 if (bill != null && !bill.contains("not found")) {
                     response.setStatus(200);
                     response.setContentType("text/plain");
                     
+                    // Convert to JSON for consistency with API
                     String jsonBill = String.format(
                         "{\"reservationNumber\":\"%s\",\"bill\":\"%s\"}",
                         reservationNumber,
@@ -59,6 +64,9 @@ public class BillServlet extends Servlet {
         }
     }
     
+    /**
+     * Extract path parameter from URL
+     */
     private String extractPathParameter(String path, String... prefixes) {
         for (String prefix : prefixes) {
             if (path.startsWith(prefix)) {
@@ -68,6 +76,9 @@ public class BillServlet extends Servlet {
         return "";
     }
     
+    /**
+     * Escape JSON string
+     */
     private String escape(String str) {
         if (str == null) return "";
         return str.replace("\\", "\\\\")

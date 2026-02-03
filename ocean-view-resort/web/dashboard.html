@@ -3,109 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ocean View Resort - Dashboard</title>
+    <title>Dashboard - Ocean View Resort</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
+            min-height: 100vh;
         }
-        
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+        .header h1 { font-size: 24px; }
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid white;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
         .container {
             max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
-        
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        
-        .tab {
-            padding: 10px 20px;
+        .menu-card {
             background: white;
-            border: none;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             cursor: pointer;
-            border-radius: 5px 5px 0 0;
+            transition: transform 0.2s;
+            text-align: center;
         }
-        
-        .tab.active {
-            background: #667eea;
-            color: white;
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
         }
-        
-        .content {
+        .menu-card .icon { font-size: 48px; margin-bottom: 15px; }
+        .menu-card h3 { color: #333; margin-bottom: 10px; }
+        .menu-card p { color: #666; font-size: 14px; }
+        .content-area {
             background: white;
-            padding: 20px;
-            border-radius: 5px;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             min-height: 400px;
         }
-        
+        .hidden { display: none; }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
-        
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            color: #333;
             font-weight: 500;
         }
-        
-        input, select {
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        textarea {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
         }
-        
-        button {
-            padding: 10px 20px;
-            background: #667eea;
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 5px;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
             cursor: pointer;
+            margin-right: 10px;
         }
-        
-        button:hover {
-            background: #5568d3;
-        }
-        
+        .btn:hover { transform: translateY(-2px); }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #e0e0e0;
         }
-        
         th {
-            background: #f5f5f5;
+            background: #f8f9fa;
             font-weight: 600;
         }
-        
-        .hidden {
-            display: none;
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
         }
     </style>
 </head>
@@ -113,257 +133,293 @@
     <div class="header">
         <h1>🌊 Ocean View Resort - Dashboard</h1>
         <div>
-            <span id="username"></span>
-            <button onclick="location.reload()" style="margin-left: 10px;">Logout</button>
+            <span>Welcome, <strong id="username"></strong></span>
+            <a href="/index.html" class="logout-btn" onclick="logout()">Logout</a>
         </div>
     </div>
     
     <div class="container">
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('reservations')">Reservations</button>
-            <button class="tab" onclick="showTab('new')">New Reservation</button>
-            <button class="tab" onclick="showTab('rooms')">Available Rooms</button>
-            <button class="tab" onclick="showTab('search')">Search</button>
+        <div class="menu-grid">
+            <div class="menu-card" onclick="showAddReservation()">
+                <div class="icon">➕</div>
+                <h3>Add New Reservation</h3>
+                <p>Create a new room booking</p>
+            </div>
+            <div class="menu-card" onclick="showViewReservation()">
+                <div class="icon">👁️</div>
+                <h3>View Reservation</h3>
+                <p>Display reservation details</p>
+            </div>
+            <div class="menu-card" onclick="showCalculateBill()">
+                <div class="icon">💰</div>
+                <h3>Calculate Bill</h3>
+                <p>Generate bill for reservation</p>
+            </div>
+            <div class="menu-card" onclick="showAvailableRooms()">
+                <div class="icon">🏨</div>
+                <h3>Available Rooms</h3>
+                <p>View room availability</p>
+            </div>
+            <div class="menu-card" onclick="showAllReservations()">
+                <div class="icon">📋</div>
+                <h3>All Reservations</h3>
+                <p>View all bookings</p>
+            </div>
+            <div class="menu-card" onclick="showSearch()">
+                <div class="icon">🔍</div>
+                <h3>Search Reservation</h3>
+                <p>Find by guest name</p>
+            </div>
+            <div class="menu-card" onclick="showHelp()">
+                <div class="icon">❓</div>
+                <h3>Help</h3>
+                <p>System guidelines</p>
+            </div>
         </div>
         
-        <div class="content">
-            <!-- Reservations Tab -->
-            <div id="reservations" class="tab-content">
-                <h2>All Reservations</h2>
-                <table id="reservationsTable">
-                    <thead>
-                        <tr>
-                            <th>Reservation #</th>
-                            <th>Guest Name</th>
-                            <th>Room</th>
-                            <th>Check-in</th>
-                            <th>Check-out</th>
-                            <th>Amount</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            
-            <!-- New Reservation Tab -->
-            <div id="new" class="tab-content hidden">
-                <h2>New Reservation</h2>
-                <form id="reservationForm">
+        <div id="contentArea" class="content-area hidden">
+            <div id="content"></div>
+        </div>
+    </div>
+    
+    <script>
+        window.onload = function() {
+            if (!sessionStorage.getItem('authenticated')) {
+                window.location.href = '/index.html';
+            } else {
+                document.getElementById('username').textContent = sessionStorage.getItem('username');
+            }
+        };
+        
+        function logout() {
+            sessionStorage.clear();
+        }
+        
+        function showContent(html) {
+            document.getElementById('content').innerHTML = html;
+            document.getElementById('contentArea').classList.remove('hidden');
+        }
+        
+        function hideContent() {
+            document.getElementById('contentArea').classList.add('hidden');
+        }
+        
+        function showAddReservation() {
+            showContent(`
+                <h2>Add New Reservation</h2>
+                <div id="alert"></div>
+                <form id="reservationForm" onsubmit="return submitReservation(event)">
                     <div class="form-group">
                         <label>Guest Name *</label>
                         <input type="text" id="guestName" required>
                     </div>
                     <div class="form-group">
+                        <label>Address</label>
+                        <textarea id="guestAddress" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
                         <label>Contact Number *</label>
-                        <input type="text" id="contact" required>
+                        <input type="text" id="guestContact" required>
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="email">
+                        <input type="email" id="guestEmail">
                     </div>
                     <div class="form-group">
-                        <label>Address</label>
-                        <input type="text" id="address">
+                        <label>NIC Number</label>
+                        <input type="text" id="guestNIC">
                     </div>
                     <div class="form-group">
-                        <label>Room *</label>
-                        <select id="roomNumber" required></select>
+                        <label>Room Number *</label>
+                        <input type="text" id="roomNumber" placeholder="e.g., R101" required>
                     </div>
                     <div class="form-group">
                         <label>Check-in Date *</label>
-                        <input type="date" id="checkIn" required>
+                        <input type="date" id="checkInDate" required>
                     </div>
                     <div class="form-group">
                         <label>Check-out Date *</label>
-                        <input type="date" id="checkOut" required>
+                        <input type="date" id="checkOutDate" required>
                     </div>
-                    <button type="submit">Create Reservation</button>
+                    <button type="submit" class="btn">Create Reservation</button>
+                    <button type="button" class="btn" onclick="hideContent()">Cancel</button>
                 </form>
-                <div id="formMessage"></div>
-            </div>
-            
-            <!-- Rooms Tab -->
-            <div id="rooms" class="tab-content hidden">
-                <h2>Available Rooms</h2>
-                <table id="roomsTable">
-                    <thead>
-                        <tr>
-                            <th>Room Number</th>
-                            <th>Type</th>
-                            <th>Rate/Night</th>
-                            <th>Capacity</th>
-                            <th>Features</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            
-            <!-- Search Tab -->
-            <div id="search" class="tab-content hidden">
-                <h2>Search Reservations</h2>
-                <input type="text" id="searchInput" placeholder="Enter guest name...">
-                <button onclick="searchReservations()">Search</button>
-                <table id="searchResults">
-                    <thead>
-                        <tr>
-                            <th>Reservation #</th>
-                            <th>Guest Name</th>
-                            <th>Room</th>
-                            <th>Check-in</th>
-                            <th>Check-out</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Check authentication
-        if (!localStorage.getItem('session')) {
-            window.location.href = '/index.html';
+            `);
         }
         
-        document.getElementById('username').textContent = localStorage.getItem('username') || 'User';
-        
-        // Set today as minimum date
-        document.getElementById('checkIn').min = new Date().toISOString().split('T')[0];
-        document.getElementById('checkOut').min = new Date().toISOString().split('T')[0];
-        
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabName).classList.remove('hidden');
-            event.target.classList.add('active');
-            
-            if (tabName === 'reservations') loadReservations();
-            if (tabName === 'rooms') loadRooms();
+        function showViewReservation() {
+            showContent(`
+                <h2>View Reservation Details</h2>
+                <div class="form-group">
+                    <label>Reservation Number</label>
+                    <input type="text" id="reservationNumber" placeholder="e.g., RES-1234567-1000">
+                    <button class="btn" onclick="getReservation()" style="margin-top: 10px;">View</button>
+                </div>
+                <div id="reservationDetails"></div>
+            `);
         }
         
-        async function loadReservations() {
-            try {
-                const response = await fetch('/api/reservations');
-                const reservations = await response.json();
-                
-                const tbody = document.querySelector('#reservationsTable tbody');
-                tbody.innerHTML = reservations.map(r => `
-                    <tr>
-                        <td>${r.reservationNumber}</td>
-                        <td>${r.guestName}</td>
-                        <td>${r.roomNumber}</td>
-                        <td>${r.checkInDate}</td>
-                        <td>${r.checkOutDate}</td>
-                        <td>Rs. ${r.totalAmount.toFixed(2)}</td>
-                        <td>
-                            <button onclick="calculateBill('${r.reservationNumber}')">Get Bill</button>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (error) {
-                console.error('Error loading reservations:', error);
-            }
+        function showCalculateBill() {
+            showContent(`
+                <h2>Calculate Bill</h2>
+                <div class="form-group">
+                    <label>Reservation Number</label>
+                    <input type="text" id="billReservationNumber" placeholder="e.g., RES-1234567-1000">
+                    <button class="btn" onclick="calculateBill()" style="margin-top: 10px;">Calculate</button>
+                </div>
+                <div id="billDetails"></div>
+            `);
         }
         
-        async function loadRooms() {
-            try {
-                const response = await fetch('/api/rooms');
-                const rooms = await response.json();
-                
-                const tbody = document.querySelector('#roomsTable tbody');
-                tbody.innerHTML = rooms.map(r => `
-                    <tr>
-                        <td>${r.roomNumber}</td>
-                        <td>${r.typeDescription}</td>
-                        <td>Rs. ${r.rate.toFixed(2)}</td>
-                        <td>${r.capacity}</td>
-                        <td>${r.features}</td>
-                    </tr>
-                `).join('');
-                
-                // Populate room dropdown
-                const select = document.getElementById('roomNumber');
-                select.innerHTML = rooms.map(r => 
-                    `<option value="${r.roomNumber}">${r.roomNumber} - ${r.typeDescription} (Rs. ${r.rate}/night)</option>`
-                ).join('');
-            } catch (error) {
-                console.error('Error loading rooms:', error);
-            }
+        function showAvailableRooms() {
+            fetch('/api/rooms')
+                .then(r => r.json())
+                .then(data => {
+                    let html = '<h2>Available Rooms</h2><table><tr><th>Room Number</th><th>Type</th><th>Rate/Night</th><th>Capacity</th><th>Features</th></tr>';
+                    data.forEach(room => {
+                        html += `<tr><td>${room.roomNumber}</td><td>${room.type}</td><td>Rs. ${parseFloat(room.rate).toFixed(2)}</td><td>${room.capacity}</td><td>${room.features}</td></tr>`;
+                    });
+                    html += '</table>';
+                    showContent(html);
+                });
         }
         
-        document.getElementById('reservationForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const reservation = {
+        function showAllReservations() {
+            fetch('/api/reservations')
+                .then(r => r.json())
+                .then(data => {
+                    let html = '<h2>All Reservations</h2><table><tr><th>Reservation #</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Amount</th><th>Status</th></tr>';
+                    data.forEach(res => {
+                        html += `<tr><td>${res.reservationNumber}</td><td>${res.guestName}</td><td>${res.roomNumber}</td><td>${res.checkInDate}</td><td>${res.checkOutDate}</td><td>Rs. ${parseFloat(res.totalAmount).toFixed(2)}</td><td>${res.status}</td></tr>`;
+                    });
+                    html += '</table>';
+                    showContent(html);
+                });
+        }
+        
+        function showSearch() {
+            showContent(`
+                <h2>Search Reservation by Guest Name</h2>
+                <div class="form-group">
+                    <label>Guest Name</label>
+                    <input type="text" id="searchGuestName" placeholder="Enter guest name">
+                    <button class="btn" onclick="searchReservations()" style="margin-top: 10px;">Search</button>
+                </div>
+                <div id="searchResults"></div>
+            `);
+        }
+        
+        function showHelp() {
+            showContent(`
+                <h2>Help Section</h2>
+                <h3>System Features</h3>
+                <ul>
+                    <li><strong>Add New Reservation:</strong> Create room bookings with guest information</li>
+                    <li><strong>View Reservation:</strong> Display complete booking details</li>
+                    <li><strong>Calculate Bill:</strong> Generate detailed bills with discounts</li>
+                    <li><strong>Available Rooms:</strong> View rooms that are currently available</li>
+                    <li><strong>All Reservations:</strong> View all bookings in the system</li>
+                    <li><strong>Search:</strong> Find reservations by guest name</li>
+                </ul>
+                <h3>Room Rates</h3>
+                <ul>
+                    <li>Single Room: Rs. 5,000 per night</li>
+                    <li>Double Room: Rs. 8,000 per night</li>
+                    <li>Deluxe Room: Rs. 12,000 per night</li>
+                    <li>Suite: Rs. 15,000 per night</li>
+                </ul>
+                <h3>Discount Policy</h3>
+                <p>10% discount applies for stays of 7 nights or more.</p>
+                <button class="btn" onclick="hideContent()">Close</button>
+            `);
+        }
+        
+        function submitReservation(event) {
+            event.preventDefault();
+            const data = {
                 name: document.getElementById('guestName').value,
-                contact: document.getElementById('contact').value,
-                email: document.getElementById('email').value,
-                address: document.getElementById('address').value,
+                address: document.getElementById('guestAddress').value,
+                contact: document.getElementById('guestContact').value,
+                email: document.getElementById('guestEmail').value,
+                nic: document.getElementById('guestNIC').value,
                 roomNumber: document.getElementById('roomNumber').value,
-                checkInDate: document.getElementById('checkIn').value,
-                checkOutDate: document.getElementById('checkOut').value
+                checkInDate: document.getElementById('checkInDate').value,
+                checkOutDate: document.getElementById('checkOutDate').value
             };
             
-            try {
-                const response = await fetch('/api/reservations', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(reservation)
-                });
-                
-                const data = await response.json();
-                const messageDiv = document.getElementById('formMessage');
-                
-                if (response.ok) {
-                    messageDiv.innerHTML = `<p style="color:green">Reservation created: ${data.reservationNumber}</p>`;
+            fetch('/api/reservations', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(data => {
+                const alert = document.getElementById('alert');
+                if (data.success) {
+                    alert.className = 'alert alert-success';
+                    alert.textContent = 'Reservation created successfully! Number: ' + data.reservationNumber;
                     document.getElementById('reservationForm').reset();
-                    loadReservations();
                 } else {
-                    messageDiv.innerHTML = `<p style="color:red">Error: ${data.error}</p>`;
+                    alert.className = 'alert alert-error';
+                    alert.textContent = data.error || 'Error creating reservation';
                 }
-            } catch (error) {
-                document.getElementById('formMessage').innerHTML = `<p style="color:red">Connection error</p>`;
-            }
-        });
-        
-        async function searchReservations() {
-            const name = document.getElementById('searchInput').value;
-            if (!name) return;
-            
-            try {
-                const response = await fetch(`/api/reservations/search?name=${encodeURIComponent(name)}`);
-                const results = await response.json();
-                
-                const tbody = document.querySelector('#searchResults tbody');
-                tbody.innerHTML = results.map(r => `
-                    <tr>
-                        <td>${r.reservationNumber}</td>
-                        <td>${r.guestName}</td>
-                        <td>${r.roomNumber}</td>
-                        <td>${r.checkInDate}</td>
-                        <td>${r.checkOutDate}</td>
-                    </tr>
-                `).join('');
-            } catch (error) {
-                console.error('Error searching:', error);
-            }
+            });
+            return false;
         }
         
-        async function calculateBill(reservationNumber) {
-            try {
-                const response = await fetch(`/api/bill/${reservationNumber}`);
-                const data = await response.json();
-                alert(data.bill.replace(/\\n/g, '\n'));
-            } catch (error) {
-                alert('Error calculating bill');
-            }
+        function getReservation() {
+            const num = document.getElementById('reservationNumber').value;
+            fetch('/api/reservations/' + encodeURIComponent(num))
+                .then(r => r.json())
+                .then(data => {
+                    const div = document.getElementById('reservationDetails');
+                    if (data.error) {
+                        div.innerHTML = '<div class="alert alert-error">' + data.error + '</div>';
+                    } else {
+                        div.innerHTML = `
+                            <div style="background:#f5f5f5;padding:20px;border-radius:8px;margin-top:20px;">
+                                <h3>Reservation Details</h3>
+                                <p><strong>Number:</strong> ${data.reservationNumber}</p>
+                                <p><strong>Guest:</strong> ${data.guestName}</p>
+                                <p><strong>Room:</strong> ${data.roomNumber}</p>
+                                <p><strong>Check-in:</strong> ${data.checkInDate}</p>
+                                <p><strong>Check-out:</strong> ${data.checkOutDate}</p>
+                                <p><strong>Amount:</strong> Rs. ${parseFloat(data.totalAmount).toFixed(2)}</p>
+                                <p><strong>Status:</strong> ${data.status}</p>
+                            </div>
+                        `;
+                    }
+                });
         }
         
-        // Load initial data
-        loadReservations();
-        loadRooms();
+        function calculateBill() {
+            const num = document.getElementById('billReservationNumber').value;
+            fetch('/api/bill/' + encodeURIComponent(num))
+                .then(r => r.text())
+                .then(text => {
+                    document.getElementById('billDetails').innerHTML = 
+                        '<pre style="background:#f5f5f5;padding:20px;border-radius:8px;white-space:pre-wrap;">' + text + '</pre>';
+                });
+        }
+        
+        function searchReservations() {
+            const name = document.getElementById('searchGuestName').value;
+            fetch('/api/search?name=' + encodeURIComponent(name))
+                .then(r => r.json())
+                .then(data => {
+                    const div = document.getElementById('searchResults');
+                    if (data.length > 0) {
+                        let html = '<table><tr><th>Reservation #</th><th>Guest</th><th>Room</th><th>Check-in</th><th>Check-out</th><th>Amount</th></tr>';
+                        data.forEach(res => {
+                            html += `<tr><td>${res.reservationNumber}</td><td>${res.guestName}</td><td>${res.roomNumber}</td><td>${res.checkInDate}</td><td>${res.checkOutDate}</td><td>Rs. ${parseFloat(res.totalAmount).toFixed(2)}</td></tr>`;
+                        });
+                        html += '</table>';
+                        div.innerHTML = html;
+                    } else {
+                        div.innerHTML = '<div class="alert alert-error">No reservations found</div>';
+                    }
+                });
+        }
     </script>
 </body>
 </html>

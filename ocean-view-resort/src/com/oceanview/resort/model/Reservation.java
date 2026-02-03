@@ -46,47 +46,20 @@ public class Reservation implements Serializable {
     
     public String getReservationNumber() { return reservationNumber; }
     public void setReservationNumber(String reservationNumber) { this.reservationNumber = reservationNumber; }
-    
     public Guest getGuest() { return guest; }
     public void setGuest(Guest guest) { this.guest = guest; }
-    
     public Room getRoom() { return room; }
-    public void setRoom(Room room) { 
-        this.room = room; 
-        calculateTotalAmount(); 
-    }
-    
+    public void setRoom(Room room) { this.room = room; calculateTotalAmount(); }
     public LocalDate getCheckInDate() { return checkInDate; }
-    public void setCheckInDate(LocalDate checkInDate) { 
-        this.checkInDate = checkInDate; 
-        calculateNights(); 
-        calculateTotalAmount(); 
-    }
-    
+    public void setCheckInDate(LocalDate checkInDate) { this.checkInDate = checkInDate; calculateNights(); calculateTotalAmount(); }
     public LocalDate getCheckOutDate() { return checkOutDate; }
-    public void setCheckOutDate(LocalDate checkOutDate) { 
-        this.checkOutDate = checkOutDate; 
-        calculateNights(); 
-        calculateTotalAmount(); 
-    }
-    
+    public void setCheckOutDate(LocalDate checkOutDate) { this.checkOutDate = checkOutDate; calculateNights(); calculateTotalAmount(); }
     public int getNumberOfNights() { return numberOfNights; }
     public void setNumberOfNights(int numberOfNights) { this.numberOfNights = numberOfNights; }
-    
     public double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
-    
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-    
     public LocalDate getReservationDate() { return reservationDate; }
     public void setReservationDate(LocalDate reservationDate) { this.reservationDate = reservationDate; }
-    
-    @Override
-    public String toString() {
-        return "Reservation{number='" + reservationNumber + "', guest='" + 
-               (guest != null ? guest.getName() : "") + "', room='" + 
-               (room != null ? room.getRoomNumber() : "") + "', nights=" + 
-               numberOfNights + ", total=" + totalAmount + "}";
-    }
 }

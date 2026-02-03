@@ -12,10 +12,12 @@ public class LoginServlet extends Servlet {
     
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        if ("POST".equals(request.getMethod())) {
+        String method = request.getMethod();
+        
+        if ("POST".equals(method)) {
             doPost(request, response);
         } else {
-            response.sendError(405, "Method " + request.getMethod() + " not allowed");
+            response.sendError(405, "Method " + method + " not allowed");
         }
     }
     
@@ -29,6 +31,7 @@ public class LoginServlet extends Servlet {
                 return;
             }
             
+            // Parse JSON body
             Map<String, String> jsonData = parseJSON(body);
             String username = jsonData.get("username");
             String password = jsonData.get("password");
@@ -39,10 +42,13 @@ public class LoginServlet extends Servlet {
                 return;
             }
             
+            // Authenticate user
             if (authService.login(username, password)) {
+                // Generate session ID
                 String sessionId = "sess_" + System.currentTimeMillis() + "_" + username.hashCode();
                 request.setSessionId(sessionId);
                 
+                // Success response
                 response.setStatus(200);
                 String json = String.format(
                     "{\"success\":true,\"session\":\"%s\",\"username\":\"%s\",\"message\":\"Login successful\"}",
@@ -50,6 +56,7 @@ public class LoginServlet extends Servlet {
                 );
                 response.sendJSON(json);
             } else {
+                // Authentication failed
                 response.setStatus(401);
                 response.sendError(401, "Invalid username or password");
             }
@@ -61,13 +68,19 @@ public class LoginServlet extends Servlet {
         }
     }
     
+    /**
+     * Simple JSON parser for request body
+     */
     private Map<String, String> parseJSON(String json) {
         Map<String, String> result = new HashMap<>();
         if (json == null || json.trim().isEmpty()) {
             return result;
         }
         
+        // Remove braces
         json = json.trim().replaceAll("^\\{", "").replaceAll("\\}$", "");
+        
+        // Split by comma
         String[] pairs = json.split(",");
         for (String pair : pairs) {
             String[] keyValue = pair.split(":", 2);

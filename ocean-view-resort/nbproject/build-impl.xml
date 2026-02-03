@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="OceanViewResort-impl" basedir="..">
+    
+    <target name="-pre-init">
+        <property name="j2ee.platform.classpath" value=""/>
+    </target>
+    
+    <target name="-init-private">
+        <property file="nbproject/private/private.properties"/>
+    </target>
+    
+    <target name="-init-user">
+        <!-- User properties initialization -->
+    </target>
+    
+    <target name="-init-module-config">
+        <property name="javac.compilerargs" value=""/>
+    </target>
+    
+    <target name="-init-project">
+        <property file="nbproject/project.properties"/>
+        <property name="dist.dir" value="${basedir}/dist"/>
+        <property name="dist.jar" value="${dist.dir}/${application.title}.jar"/>
+        <property name="build.dir" value="${basedir}/build"/>
+        <property name="build.classes.dir" value="${build.dir}/classes"/>
+    </target>
+    
+    <target name="-init-module-properties">
+        <!-- Module properties -->
+    </target>
+    
+    <target name="-init-module-sourcepaths">
+        <property name="src.dir" value="${basedir}/src"/>
+    </target>
+    
+    <target name="-init-module-classpath">
+        <path id="module.classpath">
+            <pathelement path="${src.dir}"/>
+        </path>
+    </target>
+    
+    <target name="-init-module" depends="-pre-init,-init-private,-init-user,-init-project,-init-module-properties,-init-module-sourcepaths,-init-module-classpath">
+        <!-- Module initialization complete -->
+    </target>
+    
+    <target name="-post-init"/>
+    
+    <target name="init" depends="-pre-init,-init-private,-init-user,-init-project,-init-module-properties,-init-module-sourcepaths,-init-module-classpath,-init-module"/>
+    
+    <target name="-pre-compile">
+        <mkdir dir="${build.classes.dir}"/>
+    </target>
+    
+    <target depends="init,-pre-compile" name="-do-compile">
+        <javac includeantruntime="false" 
+               srcdir="${src.dir}" 
+               destdir="${build.classes.dir}" 
+               debug="${javac.debug}"
+               source="17"
+               target="17"
+               encoding="UTF-8">
+            <classpath refid="module.classpath"/>
+        </javac>
+    </target>
+    
+    <target name="-post-compile"/>
+    
+    <target name="compile" depends="init,-pre-compile,-do-compile,-post-compile"/>
+    
+    <target name="-pre-jar">
+        <mkdir dir="${dist.dir}"/>
+    </target>
+    
+    <target depends="init,compile,-pre-jar" name="-do-jar">
+        <jar destfile="${dist.jar}">
+            <fileset dir="${build.classes.dir}"/>
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}"/>
+            </manifest>
+        </jar>
+    </target>
+    
+    <target name="-post-jar"/>
+    
+    <target name="jar" depends="init,compile,-pre-jar,-do-jar,-post-jar"/>
+    
+    <target name="run" depends="jar">
+        <java classname="${main.class}" classpath="${dist.jar}" fork="true"/>
+    </target>
+    
+    <target name="clean" depends="init">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+    
+    <target name="default" depends="jar"/>
+    
+</project>

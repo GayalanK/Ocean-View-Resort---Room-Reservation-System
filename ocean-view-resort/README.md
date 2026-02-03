@@ -7,7 +7,7 @@
 
 ## Overview
 
-A comprehensive web-based room reservation system for Ocean View Resort in Galle, Sri Lanka. Built entirely with pure Java using servlet architecture and JDBC database connectivity.
+A comprehensive web-based room reservation system for Ocean View Resort in Galle, Sri Lanka. Built entirely with pure Java using built-in HTTP server (no external libraries).
 
 ## Features
 
@@ -19,30 +19,7 @@ A comprehensive web-based room reservation system for Ocean View Resort in Galle
 - ✅ Search Reservations
 - ✅ Help Section
 - ✅ Web-based Interface
-- ✅ Database Connectivity (JDBC)
-- ✅ RESTful Web Services
-- ✅ Servlet Architecture
-
-## Project Structure
-
-```
-ocean-view-resort/
-├── src/
-│   └── com/oceanview/resort/
-│       ├── model/           # Data models
-│       ├── dao/             # Data Access Objects
-│       ├── service/         # Business logic
-│       ├── servlet/         # Servlet classes
-│       ├── web/             # Web server
-│       ├── database/        # Database connection
-│       ├── factory/         # Factory patterns
-│       ├── security/        # Authentication
-│       └── util/            # Utilities
-├── test/                    # Test classes
-├── web/                     # HTML/CSS/JS files
-├── data/                    # Data storage (created at runtime)
-└── docs/                    # Documentation
-```
+- ✅ File-based Data Storage
 
 ## Quick Start
 
@@ -66,32 +43,23 @@ ocean-view-resort/
    - Open: http://localhost:8080
    - Login: admin / admin123
 
-## Database Setup
+## Project Structure
 
-The application supports multiple database options:
-- Java DB/Derby (bundled with some JDKs)
-- H2 Database
-- SQLite
-- File-based storage (fallback)
-
-See `DATABASE_SETUP.md` for detailed setup instructions.
+```
+ocean-view-resort/
+├── src/                    # Source code
+├── web/                    # HTML/CSS/JS files
+├── data/                   # Data storage (created at runtime)
+├── test/                   # Test classes
+└── docs/                   # Documentation
+```
 
 ## Design Patterns
 
-- Singleton (FileManager, DatabaseConnection)
+- Singleton (FileManager)
 - Factory (ReservationFactory)
 - DAO (Data Access Objects)
 - Strategy (Pricing Strategy)
-- Front Controller (ServletRouter)
-
-## API Endpoints
-
-- `POST /api/login` - User authentication
-- `GET /api/reservations` - Get all reservations
-- `GET /api/reservations/{number}` - Get specific reservation
-- `POST /api/reservations` - Create reservation
-- `GET /api/rooms` - Get available rooms
-- `GET /api/bill/{number}` - Get bill
 
 ## Documentation
 
@@ -99,8 +67,7 @@ See `docs/` folder for:
 - Design Document
 - Test Plan
 - UML Diagrams
-- Servlet Implementation Guide
-- Database Setup Guide
+- Implementation Guide
 
 ## Author
 

@@ -15,6 +15,7 @@ public class RoomDAO {
     private DatabaseConnection dbConnection = DatabaseConnection.getInstance();
     
     public void save(Room room) throws IOException, ClassNotFoundException {
+        // Try database first
         if (dbConnection.isDatabaseAvailable()) {
             try {
                 saveToDatabase(room);
@@ -23,19 +24,25 @@ public class RoomDAO {
                 System.err.println("Database save failed, using file storage: " + e.getMessage());
             }
         }
+        
+        // Fallback to file storage
         saveToFile(room);
     }
     
     private void saveToDatabase(Room room) throws SQLException {
         Connection conn = dbConnection.getConnection();
+        
+        // Check if room exists
         try (PreparedStatement check = conn.prepareStatement(
             "SELECT room_number FROM rooms WHERE room_number = ?")) {
             check.setString(1, room.getRoomNumber());
             ResultSet rs = check.executeQuery();
             
             if (rs.next()) {
+                // Update existing
                 updateInDatabase(room);
             } else {
+                // Insert new
                 insertIntoDatabase(room);
             }
         }
@@ -46,12 +53,14 @@ public class RoomDAO {
         try (PreparedStatement ps = conn.prepareStatement(
             "INSERT INTO rooms (room_number, room_type, is_available, capacity, features, base_rate) " +
             "VALUES (?, ?, ?, ?, ?, ?)")) {
+            
             ps.setString(1, room.getRoomNumber());
             ps.setString(2, room.getRoomType() != null ? room.getRoomType().name() : "SINGLE");
             ps.setBoolean(3, room.isAvailable());
             ps.setInt(4, room.getCapacity());
             ps.setString(5, room.getFeatures());
             ps.setDouble(6, room.getRate());
+            
             ps.executeUpdate();
         }
     }
@@ -61,12 +70,14 @@ public class RoomDAO {
         try (PreparedStatement ps = conn.prepareStatement(
             "UPDATE rooms SET room_type = ?, is_available = ?, capacity = ?, features = ?, base_rate = ? " +
             "WHERE room_number = ?")) {
+            
             ps.setString(1, room.getRoomType() != null ? room.getRoomType().name() : "SINGLE");
             ps.setBoolean(2, room.isAvailable());
             ps.setInt(3, room.getCapacity());
             ps.setString(4, room.getFeatures());
             ps.setDouble(5, room.getRate());
             ps.setString(6, room.getRoomNumber());
+            
             ps.executeUpdate();
         }
     }
@@ -85,6 +96,7 @@ public class RoomDAO {
     }
     
     public Room findByRoomNumber(String roomNumber) throws IOException, ClassNotFoundException {
+        // Try database first
         if (dbConnection.isDatabaseAvailable()) {
             try {
                 return findFromDatabase(roomNumber);
@@ -92,6 +104,8 @@ public class RoomDAO {
                 System.err.println("Database query failed, using file storage: " + e.getMessage());
             }
         }
+        
+        // Fallback to file storage
         return findAllFromFile().stream()
             .filter(r -> r.getRoomNumber().equals(roomNumber))
             .findFirst().orElse(null);
@@ -112,6 +126,7 @@ public class RoomDAO {
     }
     
     public List<Room> findAll() throws IOException, ClassNotFoundException {
+        // Try database first
         if (dbConnection.isDatabaseAvailable()) {
             try {
                 return findAllFromDatabase();
@@ -119,6 +134,8 @@ public class RoomDAO {
                 System.err.println("Database query failed, using file storage: " + e.getMessage());
             }
         }
+        
+        // Fallback to file storage
         List<Room> rooms = findAllFromFile();
         if (rooms.isEmpty()) {
             initializeDefaultRooms();
@@ -132,6 +149,7 @@ public class RoomDAO {
         Connection conn = dbConnection.getConnection();
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM rooms ORDER BY room_number")) {
+            
             while (rs.next()) {
                 rooms.add(mapResultSetToRoom(rs));
             }
@@ -144,6 +162,7 @@ public class RoomDAO {
     }
     
     public List<Room> findAvailableRooms() throws IOException, ClassNotFoundException {
+        // Try database first
         if (dbConnection.isDatabaseAvailable()) {
             try {
                 return findAvailableFromDatabase();
@@ -151,6 +170,8 @@ public class RoomDAO {
                 System.err.println("Database query failed, using file storage: " + e.getMessage());
             }
         }
+        
+        // Fallback to file storage
         return findAll().stream().filter(Room::isAvailable).collect(Collectors.toList());
     }
     
@@ -160,6 +181,7 @@ public class RoomDAO {
         try (PreparedStatement ps = conn.prepareStatement(
             "SELECT * FROM rooms WHERE is_available = true ORDER BY room_number")) {
             ResultSet rs = ps.executeQuery();
+            
             while (rs.next()) {
                 rooms.add(mapResultSetToRoom(rs));
             }
@@ -176,13 +198,15 @@ public class RoomDAO {
             // Use default
         }
         
-        return new Room(
+        Room room = new Room(
             rs.getString("room_number"),
             roomType,
             rs.getBoolean("is_available"),
             rs.getInt("capacity"),
             rs.getString("features")
         );
+        
+        return room;
     }
     
     private void initializeDefaultRooms() throws IOException, ClassNotFoundException {

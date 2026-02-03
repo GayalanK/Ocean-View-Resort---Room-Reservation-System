@@ -18,6 +18,7 @@ public class ReservationDAO {
     private DatabaseConnection dbConnection = DatabaseConnection.getInstance();
     
     public void save(Reservation reservation) throws IOException, ClassNotFoundException {
+        // Try database first
         if (dbConnection.isDatabaseAvailable()) {
             try {
                 saveToDatabase(reservation);
@@ -26,19 +27,25 @@ public class ReservationDAO {
                 System.err.println("Database save failed, using file storage: " + e.getMessage());
             }
         }
+        
+        // Fallback to file storage
         saveToFile(reservation);
     }
     
     private void saveToDatabase(Reservation reservation) throws SQLException {
         Connection conn = dbConnection.getConnection();
+        
+        // Check if reservation exists
         try (PreparedStatement check = conn.prepareStatement(
             "SELECT reservation_number FROM reservations WHERE reservation_number = ?")) {
             check.setString(1, reservation.getReservationNumber());
             ResultSet rs = check.executeQuery();
             
             if (rs.next()) {
+                // Update existing
                 updateInDatabase(reservation);
             } else {
+                // Insert new
                 insertIntoDatabase(reservation);
             }
         }
@@ -117,6 +124,7 @@ public class ReservationDAO {
     }
     
     public Reservation findByReservationNumber(String reservationNumber) throws IOException, ClassNotFoundException {
+        // Try database first
         if (dbConnection.isDatabaseAvailable()) {
             try {
                 return findFromDatabase(reservationNumber);
@@ -124,6 +132,8 @@ public class ReservationDAO {
                 System.err.println("Database query failed, using file storage: " + e.getMessage());
             }
         }
+        
+        // Fallback to file storage
         return findAllFromFile().stream()
             .filter(r -> r.getReservationNumber().equals(reservationNumber))
             .findFirst().orElse(null);
@@ -144,6 +154,7 @@ public class ReservationDAO {
     }
     
     public List<Reservation> findAll() throws IOException, ClassNotFoundException {
+        // Try database first
         if (dbConnection.isDatabaseAvailable()) {
             try {
                 return findAllFromDatabase();
@@ -151,6 +162,8 @@ public class ReservationDAO {
                 System.err.println("Database query failed, using file storage: " + e.getMessage());
             }
         }
+        
+        // Fallback to file storage
         return findAllFromFile();
     }
     
@@ -159,6 +172,7 @@ public class ReservationDAO {
         Connection conn = dbConnection.getConnection();
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM reservations ORDER BY reservation_date DESC")) {
+            
             while (rs.next()) {
                 reservations.add(mapResultSetToReservation(rs));
             }
@@ -171,6 +185,7 @@ public class ReservationDAO {
     }
     
     public List<Reservation> findByGuestName(String guestName) throws IOException, ClassNotFoundException {
+        // Try database first
         if (dbConnection.isDatabaseAvailable()) {
             try {
                 return findByGuestNameFromDatabase(guestName);
@@ -178,6 +193,8 @@ public class ReservationDAO {
                 System.err.println("Database query failed, using file storage: " + e.getMessage());
             }
         }
+        
+        // Fallback to file storage
         return findAllFromFile().stream()
             .filter(r -> r.getGuest() != null && r.getGuest().getName().toLowerCase().contains(guestName.toLowerCase()))
             .collect(Collectors.toList());
@@ -202,6 +219,7 @@ public class ReservationDAO {
         Reservation reservation = new Reservation();
         reservation.setReservationNumber(rs.getString("reservation_number"));
         
+        // Create guest object
         Guest guest = new Guest();
         guest.setName(rs.getString("guest_name"));
         guest.setAddress(rs.getString("guest_address"));
@@ -210,6 +228,7 @@ public class ReservationDAO {
         guest.setNicNumber(rs.getString("guest_nic"));
         reservation.setGuest(guest);
         
+        // Get room (need to fetch from RoomDAO)
         String roomNumber = rs.getString("room_number");
         if (roomNumber != null) {
             try {

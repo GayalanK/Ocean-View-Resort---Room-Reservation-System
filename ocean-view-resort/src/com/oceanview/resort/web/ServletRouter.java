@@ -3,6 +3,7 @@ package com.oceanview.resort.web;
 import com.oceanview.resort.servlet.*;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -25,6 +26,7 @@ public class ServletRouter {
         Servlet.HttpServletResponse response = createResponse(writer);
         
         try {
+            // Route based on path
             if (path.equals("/login") || path.equals("/api/login")) {
                 loginServlet.service(request, response);
             } else if (path.startsWith("/api/reservations") || path.startsWith("/reservations")) {

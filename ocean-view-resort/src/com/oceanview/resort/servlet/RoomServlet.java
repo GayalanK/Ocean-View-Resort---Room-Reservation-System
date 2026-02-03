@@ -3,6 +3,8 @@ package com.oceanview.resort.servlet;
 import com.oceanview.resort.dao.RoomDAO;
 import com.oceanview.resort.model.Room;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Room Servlet - Handles room-related operations
@@ -12,10 +14,12 @@ public class RoomServlet extends Servlet {
     
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        if ("GET".equals(request.getMethod())) {
+        String method = request.getMethod();
+        
+        if ("GET".equals(method)) {
             doGet(request, response);
         } else {
-            response.sendError(405, "Method " + request.getMethod() + " not allowed");
+            response.sendError(405, "Method " + method + " not allowed");
         }
     }
     
@@ -24,19 +28,24 @@ public class RoomServlet extends Servlet {
         try {
             String path = request.getPath();
             
+            // GET /api/rooms - Get all available rooms
             if (path.equals("/api/rooms") || path.equals("/rooms")) {
                 String available = request.getParameter("available");
                 
                 List<Room> rooms;
                 if ("true".equalsIgnoreCase(available) || available == null) {
+                    // Get only available rooms (default)
                     rooms = roomDAO.findAvailableRooms();
                 } else {
+                    // Get all rooms
                     rooms = roomDAO.findAll();
                 }
                 
                 response.setStatus(200);
                 response.sendJSON(toJSONArray(rooms));
-            } else if (path.startsWith("/api/rooms/") || path.startsWith("/rooms/")) {
+            }
+            // GET /api/rooms/{roomNumber} - Get specific room
+            else if (path.startsWith("/api/rooms/") || path.startsWith("/rooms/")) {
                 String roomNumber = extractPathParameter(path, "/api/rooms/", "/rooms/");
                 Room room = roomDAO.findByRoomNumber(roomNumber);
                 
@@ -59,6 +68,9 @@ public class RoomServlet extends Servlet {
         }
     }
     
+    /**
+     * Extract path parameter from URL
+     */
     private String extractPathParameter(String path, String... prefixes) {
         for (String prefix : prefixes) {
             if (path.startsWith(prefix)) {
@@ -68,6 +80,9 @@ public class RoomServlet extends Servlet {
         return "";
     }
     
+    /**
+     * Convert Room to JSON
+     */
     private String toJSON(Room room) {
         if (room == null) return "{}";
         
@@ -89,6 +104,9 @@ public class RoomServlet extends Servlet {
         );
     }
     
+    /**
+     * Convert List of Rooms to JSON array
+     */
     private String toJSONArray(List<Room> rooms) {
         StringBuilder json = new StringBuilder("[");
         for (int i = 0; i < rooms.size(); i++) {
@@ -99,6 +117,9 @@ public class RoomServlet extends Servlet {
         return json.toString();
     }
     
+    /**
+     * Escape JSON string
+     */
     private String escape(String str) {
         if (str == null) return "";
         return str.replace("\\", "\\\\")

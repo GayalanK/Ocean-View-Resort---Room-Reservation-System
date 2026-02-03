@@ -11,24 +11,42 @@ import java.util.Map;
  */
 public abstract class Servlet {
     
+    /**
+     * Service method - handles HTTP requests
+     */
     public abstract void service(HttpServletRequest request, HttpServletResponse response) throws Exception;
     
+    /**
+     * Handle GET requests
+     */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws Exception {
         response.sendError(405, "Method GET not allowed");
     }
     
+    /**
+     * Handle POST requests
+     */
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws Exception {
         response.sendError(405, "Method POST not allowed");
     }
     
+    /**
+     * Handle PUT requests
+     */
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws Exception {
         response.sendError(405, "Method PUT not allowed");
     }
     
+    /**
+     * Handle DELETE requests
+     */
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws Exception {
         response.sendError(405, "Method DELETE not allowed");
     }
     
+    /**
+     * HTTP Request wrapper
+     */
     public static class HttpServletRequest {
         private String method;
         private String path;
@@ -64,6 +82,9 @@ public abstract class Servlet {
         }
     }
     
+    /**
+     * HTTP Response wrapper
+     */
     public static class HttpServletResponse {
         private PrintWriter writer;
         private int statusCode = 200;
@@ -80,7 +101,7 @@ public abstract class Servlet {
         public String getContentType() { return contentType; }
         public PrintWriter getWriter() { return writer; }
         public void setHeader(String name, String value) {
-            headers.put(name, value);
+            if (headers != null) headers.put(name, value);
         }
         
         public void sendJSON(String json) {

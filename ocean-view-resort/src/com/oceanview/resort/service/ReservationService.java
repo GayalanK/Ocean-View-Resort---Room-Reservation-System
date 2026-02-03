@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * Reservation Service - Business logic for reservation operations
- */
 public class ReservationService {
     private ReservationDAO reservationDAO = new ReservationDAO();
     private RoomDAO roomDAO = new RoomDAO();
@@ -90,18 +87,12 @@ public class ReservationService {
         bill.append("     OCEAN VIEW RESORT - BILL          \n");
         bill.append("========================================\n");
         bill.append("Reservation: ").append(reservation.getReservationNumber()).append("\n");
-        if (reservation.getGuest() != null) {
-            bill.append("Guest: ").append(reservation.getGuest().getName()).append("\n");
-        }
-        if (reservation.getRoom() != null) {
-            bill.append("Room: ").append(reservation.getRoom().getRoomNumber()).append("\n");
-        }
+        bill.append("Guest: ").append(reservation.getGuest().getName()).append("\n");
+        bill.append("Room: ").append(reservation.getRoom().getRoomNumber()).append("\n");
         bill.append("Check-in: ").append(reservation.getCheckInDate()).append("\n");
         bill.append("Check-out: ").append(reservation.getCheckOutDate()).append("\n");
         bill.append("Nights: ").append(reservation.getNumberOfNights()).append("\n");
-        if (reservation.getRoom() != null) {
-            bill.append("Rate: Rs. ").append(String.format("%.2f", reservation.getRoom().getRate())).append("/night\n");
-        }
+        bill.append("Rate: Rs. ").append(String.format("%.2f", reservation.getRoom().getRate())).append("/night\n");
         bill.append("TOTAL: Rs. ").append(String.format("%.2f", total)).append("\n");
         bill.append("========================================\n");
         return bill.toString();

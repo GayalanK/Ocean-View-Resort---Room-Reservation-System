@@ -1,135 +1,127 @@
-# NetBeans Setup Guide
+# NetBeans Setup Guide - Fix Main Class Issue
 
-## Step-by-Step Instructions
+## Problem
+Error: "Class 'com.oceanview.resort.ui.MenuSystem' does not have a main method"
 
-### 1. Open Project in NetBeans
+## Solution
 
-1. Launch NetBeans IDE
-2. Go to **File → Open Project** (or press `Ctrl+Shift+O`)
-3. Navigate to the folder: `D:\Gayalan K Private\ocean-view-resort`
-4. Select the `ocean-view-resort` folder
-5. Click **Open Project**
+### Why This Happens
+`MenuSystem` is NOT the main class - it's a UI helper class. The actual main class is `ReservationSystemMain`.
 
-### 2. Set Main Class
+### How to Fix
 
-1. Right-click on the **ocean-view-resort** project in Projects window
+#### Method 1: Set Main Class in Project Properties
+
+1. **Right-click on the project** (`OceanViewResort`) in the Projects window
 2. Select **Properties**
-3. In the left panel, click **Run**
-4. In the **Main Class** field, enter: `com.oceanview.resort.web.WebServer`
-   - Or click **Browse** and navigate to: `com.oceanview.resort.web.WebServer`
-5. In the **Arguments** field (optional), you can set port: `8080`
+3. Go to **Run** category (left sidebar)
+4. In the **Main Class** field, ensure it shows:
+   ```
+   com.oceanview.resort.main.ReservationSystemMain
+   ```
+5. If it's different, click **Browse...** and select:
+   - Package: `com.oceanview.resort.main`
+   - Class: `ReservationSystemMain`
 6. Click **OK**
 
-### 3. Clean and Build Project
+#### Method 2: Right-Click Project to Run
 
-1. Right-click on the project
-2. Select **Clean and Build** (or press `Shift+F11`)
-3. Wait for build to complete
-4. Check the Output window for any errors
+**Important:** Always run from the **project**, not from individual files!
 
-### 4. Run the Application
+1. **Right-click on the project** (`OceanViewResort`) in Projects window
+2. Select **Run**
+3. OR use keyboard shortcut: **F6**
 
-1. Right-click on the project
-2. Select **Run** (or press `F6`)
-3. The Output window will show:
+**DO NOT:**
+- ❌ Right-click on `MenuSystem.java` → Run File
+- ❌ Right-click on any file in `ui` package → Run File
+
+**DO:**
+- ✅ Right-click on project → Run
+- ✅ Use menu: Run → Run Project (F6)
+
+#### Method 3: Select Main Class from Run Menu
+
+1. Go to **Run** menu in NetBeans
+2. Select **Set Project Configuration** → **Customize...**
+3. In Main Class field, enter: `com.oceanview.resort.main.ReservationSystemMain`
+4. Click **OK**
+
+### Verify Main Class is Set Correctly
+
+1. Right-click project → **Properties**
+2. Go to **Run** category
+3. Verify **Main Class** shows: `com.oceanview.resort.main.ReservationSystemMain`
+
+### Correct File to Run
+
+**Main Application:**
+- File: `src/com/oceanview/resort/main/ReservationSystemMain.java`
+- Has `main` method: ✅ YES
+- Should be run: ✅ YES
+
+**UI Helper:**
+- File: `src/com/oceanview/resort/ui/MenuSystem.java`
+- Has `main` method: ❌ NO
+- Should be run: ❌ NO (called by ReservationSystemMain)
+
+**Web Service:**
+- File: `src/com/oceanview/resort/main/WebServiceMain.java`
+- Has `main` method: ✅ YES
+- Optional: Can be run separately for web services
+
+## Quick Fix Steps
+
+1. **Close any running application**
+2. **Right-click on project** `OceanViewResort` → **Properties**
+3. **Run** category → Set Main Class to: `com.oceanview.resort.main.ReservationSystemMain`
+4. Click **OK**
+5. **Right-click project** → **Run** (or press F6)
+
+## Testing the Fix
+
+After setting the main class correctly:
+1. Click **Run** button (green play icon) or press **F6**
+2. You should see:
    ```
    ============================================
-   Ocean View Resort - Web Application
-   Server running on: http://localhost:8080
+      OCEAN VIEW RESORT
+      Room Reservation System
    ============================================
+   
+   Username: 
    ```
-
-### 5. Access the Application
-
-1. Open your web browser
-2. Go to: `http://localhost:8080`
-3. You should see the login page
-4. Login with:
-   - **Username:** `admin`
-   - **Password:** `admin123`
-
-## Troubleshooting
-
-### Issue: "Cannot find main class"
-
-**Solution:**
-1. Ensure all Java files are in the correct package structure
-2. Clean and Build the project
-3. Check that `WebServer.java` exists at: `src/com/oceanview/resort/web/WebServer.java`
-4. Verify the main class path in Project Properties → Run
-
-### Issue: "Package does not exist"
-
-**Solution:**
-1. Right-click project → **Clean and Build**
-2. Check that all package declarations match folder structure
-3. Ensure all required files are present:
-   - ReservationService.java
-   - All servlet classes
-   - All DAO classes
-
-### Issue: "Port 8080 already in use"
-
-**Solution:**
-1. Change the port in WebServer.java main method:
-   ```java
-   int port = args.length > 0 ? Integer.parseInt(args[0]) : 9090;
-   ```
-2. Or kill the process using port 8080:
-   - Windows: `netstat -ano | findstr :8080` then `taskkill /PID <PID> /F`
-
-### Issue: "Cannot resolve symbol"
-
-**Solution:**
-1. Clean and Build project
-2. Check that all source files are in `src` folder
-3. Verify package names match folder structure
-
-## Project Structure Verification
-
-Make sure these files exist:
-
-```
-ocean-view-resort/
-├── src/
-│   └── com/oceanview/resort/
-│       ├── web/
-│       │   └── WebServer.java ✅
-│       ├── service/
-│       │   └── ReservationService.java ✅
-│       ├── servlet/ (all servlet classes) ✅
-│       ├── dao/ (all DAO classes) ✅
-│       ├── model/ (all model classes) ✅
-│       └── ... (other classes)
-└── web/
-    ├── index.html ✅
-    └── dashboard.html ✅
-```
+3. If you see the login prompt, it's working! ✅
 
 ## Alternative: Run from Command Line
 
-If NetBeans still has issues:
+If NetBeans still has issues, you can run directly:
 
-1. Open Command Prompt
-2. Navigate to project folder:
-   ```cmd
-   cd "D:\Gayalan K Private\ocean-view-resort"
-   ```
-3. Compile all Java files:
-   ```cmd
-   javac -d build/classes -sourcepath src src/com/oceanview/resort/**/*.java
-   ```
-4. Run the application:
-   ```cmd
-   java -cp build/classes com.oceanview.resort.web.WebServer
-   ```
+```bash
+cd "D:\Gayalan K Private\ocean-view-resort"
+javac -d build/classes src/com/oceanview/resort/**/*.java
+java -cp build/classes com.oceanview.resort.main.ReservationSystemMain
+```
 
-## Verify Files are Present
+## Troubleshooting
 
-Check these critical files exist:
-- ✅ `src/com/oceanview/resort/web/WebServer.java`
-- ✅ `src/com/oceanview/resort/service/ReservationService.java`
-- ✅ `src/com/oceanview/resort/servlet/Servlet.java`
-- ✅ `src/com/oceanview/resort/web/ServletRouter.java`
+### Issue: Main class still wrong
+- Check `nbproject/project.properties` line 20:
+  ```
+  main.class=com.oceanview.resort.main.ReservationSystemMain
+  ```
+- If different, change it to the above
 
-If any are missing, they need to be recreated.
+### Issue: Can't find ReservationSystemMain
+- Make sure the file exists at:
+  `src/com/oceanview/resort/main/ReservationSystemMain.java`
+- Clean and rebuild: Right-click project → **Clean and Build**
+
+### Issue: Project won't compile
+- Check for compilation errors
+- Clean build: Right-click project → **Clean and Build**
+- Check that all required files exist
+
+---
+
+**Remember:** Always run the **project**, not individual files (unless they have a main method and you specifically want to run them separately).

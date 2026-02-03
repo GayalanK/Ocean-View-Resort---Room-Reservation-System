@@ -8,9 +8,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Web Server - Main HTTP server for the application
- */
 public class WebServer {
     private ServletRouter servletRouter = new ServletRouter();
     private ServerSocket serverSocket;
@@ -177,26 +174,6 @@ public class WebServer {
                 out.println();
                 out.println(error);
                 out.flush();
-            }
-        }
-        
-        private void sendError(PrintWriter out, int code, String msg) {
-            String json = "{\"error\":\"" + msg + "\"}";
-            out.println("HTTP/1.1 " + code + " " + getStatus(code));
-            out.println("Content-Type: application/json; charset=UTF-8");
-            out.println("Content-Length: " + json.getBytes().length);
-            out.println();
-            out.println(json);
-            out.flush();
-        }
-        
-        private String getStatus(int code) {
-            switch (code) {
-                case 200: return "OK";
-                case 400: return "Bad Request";
-                case 404: return "Not Found";
-                case 500: return "Internal Server Error";
-                default: return "OK";
             }
         }
     }

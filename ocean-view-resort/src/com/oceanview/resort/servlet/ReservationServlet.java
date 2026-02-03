@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 /**
  * Reservation Servlet - Handles reservation operations
+ * Supports GET (all/get by ID), POST (create), PUT (update), DELETE
  */
 public class ReservationServlet extends Servlet {
     private ReservationService reservationService = new ReservationService();
@@ -24,6 +25,12 @@ public class ReservationServlet extends Servlet {
             case "POST":
                 doPost(request, response);
                 break;
+            case "PUT":
+                doPut(request, response);
+                break;
+            case "DELETE":
+                doDelete(request, response);
+                break;
             default:
                 response.sendError(405, "Method " + method + " not allowed");
         }
@@ -34,11 +41,14 @@ public class ReservationServlet extends Servlet {
         try {
             String path = request.getPath();
             
+            // GET /api/reservations - Get all reservations
             if (path.equals("/api/reservations") || path.equals("/reservations")) {
                 List<Reservation> reservations = reservationService.getAllReservations();
                 response.setStatus(200);
                 response.sendJSON(toJSONArray(reservations));
-            } else if (path.startsWith("/api/reservations/") || path.startsWith("/reservations/")) {
+            }
+            // GET /api/reservations/{number} - Get reservation by number
+            else if (path.startsWith("/api/reservations/") || path.startsWith("/reservations/")) {
                 String number = extractPathParameter(path, "/api/reservations/", "/reservations/");
                 Reservation reservation = reservationService.getReservationByNumber(number);
                 
@@ -49,7 +59,9 @@ public class ReservationServlet extends Servlet {
                     response.setStatus(404);
                     response.sendError(404, "Reservation not found");
                 }
-            } else if (path.startsWith("/api/reservations/search") || path.startsWith("/reservations/search")) {
+            }
+            // GET /api/reservations/search?name=... - Search by guest name
+            else if (path.startsWith("/api/reservations/search") || path.startsWith("/reservations/search")) {
                 String name = request.getParameter("name");
                 if (name == null || name.isEmpty()) {
                     response.setStatus(400);
@@ -82,8 +94,10 @@ public class ReservationServlet extends Servlet {
                 return;
             }
             
+            // Parse JSON body
             Map<String, String> jsonData = parseJSON(body);
             
+            // Extract reservation data
             String name = jsonData.get("name");
             String address = jsonData.get("address");
             String contact = jsonData.get("contact");
@@ -93,14 +107,17 @@ public class ReservationServlet extends Servlet {
             String checkInDate = jsonData.get("checkInDate");
             String checkOutDate = jsonData.get("checkOutDate");
             
+            // Validate required fields
             if (name == null || roomNumber == null || checkInDate == null || checkOutDate == null) {
                 response.setStatus(400);
                 response.sendError(400, "Missing required fields: name, roomNumber, checkInDate, checkOutDate");
                 return;
             }
             
+            // Create guest object
             Guest guest = new Guest(name, address, contact, email, nic);
             
+            // Create reservation
             String reservationNumber = reservationService.createReservation(
                 guest, roomNumber, checkInDate, checkOutDate
             );
@@ -122,6 +139,23 @@ public class ReservationServlet extends Servlet {
         }
     }
     
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        // Update reservation - not implemented in basic version
+        response.setStatus(501);
+        response.sendError(501, "Update operation not yet implemented");
+    }
+    
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        // Delete reservation - not implemented in basic version
+        response.setStatus(501);
+        response.sendError(501, "Delete operation not yet implemented");
+    }
+    
+    /**
+     * Extract path parameter from URL
+     */
     private String extractPathParameter(String path, String... prefixes) {
         for (String prefix : prefixes) {
             if (path.startsWith(prefix)) {
@@ -131,6 +165,9 @@ public class ReservationServlet extends Servlet {
         return "";
     }
     
+    /**
+     * Parse JSON string to Map
+     */
     private Map<String, String> parseJSON(String json) {
         Map<String, String> result = new HashMap<>();
         if (json == null || json.trim().isEmpty()) {
@@ -151,6 +188,9 @@ public class ReservationServlet extends Servlet {
         return result;
     }
     
+    /**
+     * Convert Reservation to JSON
+     */
     private String toJSON(Reservation r) {
         if (r == null) return "{}";
         
@@ -184,6 +224,9 @@ public class ReservationServlet extends Servlet {
         );
     }
     
+    /**
+     * Convert List of Reservations to JSON array
+     */
     private String toJSONArray(List<Reservation> reservations) {
         StringBuilder json = new StringBuilder("[");
         for (int i = 0; i < reservations.size(); i++) {
@@ -194,6 +237,9 @@ public class ReservationServlet extends Servlet {
         return json.toString();
     }
     
+    /**
+     * Escape JSON string
+     */
     private String escape(String str) {
         if (str == null) return "";
         return str.replace("\\", "\\\\")

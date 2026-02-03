@@ -122,33 +122,31 @@ public class DatabaseConnection {
                 "base_rate DOUBLE NOT NULL)"
             );
             
-            // Guests table (for Derby use GENERATED ALWAYS AS IDENTITY)
+            // Guests table
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS guests (" +
+                "id INTEGER PRIMARY KEY AUTO_INCREMENT, " +
+                "name VARCHAR(100) NOT NULL, " +
+                "address VARCHAR(500), " +
+                "contact_number VARCHAR(20), " +
+                "email VARCHAR(100), " +
+                "nic_number VARCHAR(20))"
+            );
+            
+            // For Derby, use GENERATED ALWAYS AS IDENTITY instead of AUTO_INCREMENT
             try {
                 stmt.executeUpdate(
-                    "CREATE TABLE IF NOT EXISTS guests (" +
-                    "id INTEGER PRIMARY KEY AUTO_INCREMENT, " +
+                    "CREATE TABLE IF NOT EXISTS guests_derby (" +
+                    "id INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
                     "name VARCHAR(100) NOT NULL, " +
                     "address VARCHAR(500), " +
                     "contact_number VARCHAR(20), " +
                     "email VARCHAR(100), " +
-                    "nic_number VARCHAR(20))"
+                    "nic_number VARCHAR(20), " +
+                    "PRIMARY KEY (id))"
                 );
             } catch (SQLException e) {
-                // For Derby, use GENERATED ALWAYS AS IDENTITY
-                try {
-                    stmt.executeUpdate(
-                        "CREATE TABLE IF NOT EXISTS guests (" +
-                        "id INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
-                        "name VARCHAR(100) NOT NULL, " +
-                        "address VARCHAR(500), " +
-                        "contact_number VARCHAR(20), " +
-                        "email VARCHAR(100), " +
-                        "nic_number VARCHAR(20), " +
-                        "PRIMARY KEY (id))"
-                    );
-                } catch (SQLException e2) {
-                    // Ignore if table already exists
-                }
+                // Ignore if already exists or not Derby
             }
             
             // Reservations table
@@ -168,7 +166,8 @@ public class DatabaseConnection {
                 "number_of_nights INTEGER NOT NULL, " +
                 "total_amount DOUBLE NOT NULL, " +
                 "status VARCHAR(20) NOT NULL DEFAULT 'PENDING', " +
-                "reservation_date DATE NOT NULL)"
+                "reservation_date DATE NOT NULL, " +
+                "FOREIGN KEY (room_number) REFERENCES rooms(room_number))"
             );
             
             // Initialize default data
@@ -290,7 +289,7 @@ public class DatabaseConnection {
                         DriverManager.getConnection("jdbc:derby:;shutdown=true");
                     } catch (SQLException e) {
                         // Expected exception for shutdown
-                        if (e.getSQLState() != null && e.getSQLState().equals("XJ015")) {
+                        if (e.getSQLState().equals("XJ015")) {
                             System.out.println("Derby database shut down normally");
                         }
                     }

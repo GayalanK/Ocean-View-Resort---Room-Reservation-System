@@ -41,24 +41,13 @@ public class Room implements Serializable {
     
     public String getRoomNumber() { return roomNumber; }
     public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
-    
     public RoomType getRoomType() { return roomType; }
     public void setRoomType(RoomType roomType) { this.roomType = roomType; }
-    
     public boolean isAvailable() { return isAvailable; }
     public void setAvailable(boolean available) { isAvailable = available; }
-    
     public int getCapacity() { return capacity; }
     public void setCapacity(int capacity) { this.capacity = capacity; }
-    
     public String getFeatures() { return features; }
     public void setFeatures(String features) { this.features = features; }
-    
     public double getRate() { return roomType != null ? roomType.getBaseRate() : 0.0; }
-    
-    @Override
-    public String toString() {
-        return "Room{number='" + roomNumber + "', type='" + (roomType != null ? roomType.getDescription() : "") + 
-               "', available=" + isAvailable + ", rate=" + getRate() + "}";
-    }
 }
