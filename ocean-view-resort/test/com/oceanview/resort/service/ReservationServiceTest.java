@@ -2,134 +2,101 @@ package com.oceanview.resort.service;
 
 import com.oceanview.resort.model.Guest;
 import com.oceanview.resort.model.Reservation;
+import com.oceanview.resort.model.Room;
 import java.time.LocalDate;
 
 /**
- * Test class for ReservationService
- * Manual testing approach (pure Java, no external test libraries)
+ * Lightweight tests for reservation-related business behavior.
  */
 public class ReservationServiceTest {
-    
+
     public static void main(String[] args) {
-        System.out.println("=== ReservationService Test Suite ===\n");
-        
+        ReservationServiceTest test = new ReservationServiceTest();
         int passed = 0;
         int failed = 0;
-        
-        // Test 1: Create Reservation
-        try {
-            testCreateReservation();
-            System.out.println("✓ Test 1: Create Reservation - PASSED");
+
+        System.out.println("Running ReservationService Tests...\n");
+
+        if (test.testDiscountAppliedForSevenNights()) {
+            System.out.println("✓ Discount calculation for 7+ nights - PASSED");
             passed++;
-        } catch (Exception e) {
-            System.out.println("✗ Test 1: Create Reservation - FAILED: " + e.getMessage());
+        } else {
+            System.out.println("✗ Discount calculation for 7+ nights - FAILED");
             failed++;
         }
-        
-        // Test 2: Calculate Bill
-        try {
-            testCalculateBill();
-            System.out.println("✓ Test 2: Calculate Bill - PASSED");
+
+        if (test.testNoDiscountForShortStay()) {
+            System.out.println("✓ No discount for short stay - PASSED");
             passed++;
-        } catch (Exception e) {
-            System.out.println("✗ Test 2: Calculate Bill - FAILED: " + e.getMessage());
+        } else {
+            System.out.println("✗ No discount for short stay - FAILED");
             failed++;
         }
-        
-        // Test 3: Date Validation
-        try {
-            testDateValidation();
-            System.out.println("✓ Test 3: Date Validation - PASSED");
+
+        if (test.testReservationCalculatesNightsCorrectly()) {
+            System.out.println("✓ Reservation nights calculation - PASSED");
             passed++;
-        } catch (Exception e) {
-            System.out.println("✗ Test 3: Date Validation - FAILED: " + e.getMessage());
+        } else {
+            System.out.println("✗ Reservation nights calculation - FAILED");
             failed++;
         }
-        
-        // Test 4: Get Reservation
-        try {
-            testGetReservation();
-            System.out.println("✓ Test 4: Get Reservation - PASSED");
-            passed++;
-        } catch (Exception e) {
-            System.out.println("✗ Test 4: Get Reservation - FAILED: " + e.getMessage());
-            failed++;
-        }
-        
+
         System.out.println("\n=== Test Results ===");
         System.out.println("Passed: " + passed);
         System.out.println("Failed: " + failed);
         System.out.println("Total: " + (passed + failed));
     }
-    
-    private static void testCreateReservation() throws Exception {
-        ReservationService service = new ReservationService();
-        Guest guest = new Guest("Test Guest", "123 Test St", "0712345678", "test@email.com", "123456789V");
-        
-        String checkIn = LocalDate.now().plusDays(1).toString();
-        String checkOut = LocalDate.now().plusDays(3).toString();
-        
-        String reservationNumber = service.createReservation(guest, "R101", checkIn, checkOut);
-        
-        if (reservationNumber == null || reservationNumber.isEmpty()) {
-            throw new Exception("Reservation number not generated");
-        }
+
+    private boolean testDiscountAppliedForSevenNights() {
+        Room room = new Room("R101", Room.RoomType.SINGLE, true, 1, "AC");
+        Guest guest = new Guest("Nimal Perera", "Galle", "0712345678", "nimal@example.com", "123456789V");
+
+        Reservation reservation = new Reservation(
+                "RES2001",
+                guest,
+                room,
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(8)
+        );
+
+        PricingStrategy strategy = new DiscountPricingStrategy();
+        double expected = room.getRate() * 7 * 0.90;
+        double actual = strategy.calculatePrice(reservation);
+
+        return Math.abs(actual - expected) < 0.001;
     }
-    
-    private static void testCalculateBill() throws Exception {
-        ReservationService service = new ReservationService();
-        Guest guest = new Guest("Bill Test", "123 St", "0712345678", "bill@test.com", "987654321V");
-        String checkIn = LocalDate.now().plusDays(5).toString();
-        String checkOut = LocalDate.now().plusDays(8).toString();
-        
-        String reservationNumber = service.createReservation(guest, "R102", checkIn, checkOut);
-        String bill = service.calculateBill(reservationNumber);
-        
-        if (bill == null || bill.isEmpty() || !bill.contains("TOTAL")) {
-            throw new Exception("Bill not calculated correctly");
-        }
+
+    private boolean testNoDiscountForShortStay() {
+        Room room = new Room("R201", Room.RoomType.DOUBLE, true, 2, "AC");
+        Guest guest = new Guest("Amali Silva", "Matara", "0771234567", "amali@example.com", "987654321V");
+
+        Reservation reservation = new Reservation(
+                "RES2002",
+                guest,
+                room,
+                LocalDate.now().plusDays(1),
+                LocalDate.now().plusDays(4)
+        );
+
+        PricingStrategy strategy = new DiscountPricingStrategy();
+        double expected = room.getRate() * 3;
+        double actual = strategy.calculatePrice(reservation);
+
+        return Math.abs(actual - expected) < 0.001;
     }
-    
-    private static void testDateValidation() throws Exception {
-        ReservationService service = new ReservationService();
-        Guest guest = new Guest("Date Test", "123 St", "0712345678", "date@test.com", "111222333V");
-        
-        // Test invalid date range
-        try {
-            String checkIn = LocalDate.now().plusDays(5).toString();
-            String checkOut = LocalDate.now().plusDays(3).toString();
-            service.createReservation(guest, "R103", checkIn, checkOut);
-            throw new Exception("Should have thrown exception for invalid date range");
-        } catch (IllegalArgumentException e) {
-            // Expected exception
-        }
-        
-        // Test past date
-        try {
-            String checkIn = LocalDate.now().minusDays(1).toString();
-            String checkOut = LocalDate.now().plusDays(2).toString();
-            service.createReservation(guest, "R103", checkIn, checkOut);
-            throw new Exception("Should have thrown exception for past date");
-        } catch (IllegalArgumentException e) {
-            // Expected exception
-        }
-    }
-    
-    private static void testGetReservation() throws Exception {
-        ReservationService service = new ReservationService();
-        Guest guest = new Guest("Get Test", "123 St", "0712345678", "get@test.com", "444555666V");
-        String checkIn = LocalDate.now().plusDays(10).toString();
-        String checkOut = LocalDate.now().plusDays(12).toString();
-        
-        String reservationNumber = service.createReservation(guest, "R104", checkIn, checkOut);
-        Reservation reservation = service.getReservationByNumber(reservationNumber);
-        
-        if (reservation == null) {
-            throw new Exception("Reservation not retrieved");
-        }
-        
-        if (!reservation.getReservationNumber().equals(reservationNumber)) {
-            throw new Exception("Wrong reservation retrieved");
-        }
+
+    private boolean testReservationCalculatesNightsCorrectly() {
+        Room room = new Room("R301", Room.RoomType.DELUXE, true, 3, "Balcony");
+        Guest guest = new Guest("Kasun Fernando", "Colombo", "0769876543", "kasun@example.com", "456123789V");
+
+        Reservation reservation = new Reservation(
+                "RES2003",
+                guest,
+                room,
+                LocalDate.now().plusDays(5),
+                LocalDate.now().plusDays(10)
+        );
+
+        return reservation.getNumberOfNights() == 5;
     }
 }

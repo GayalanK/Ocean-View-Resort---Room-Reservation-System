@@ -41,6 +41,11 @@ public class ValidationUtil {
     public static boolean isValidName(String name) {
         return name != null && name.trim().length() >= 2;
     }
+
+    public static boolean isValidRoomNumber(String roomNumber) {
+        if (roomNumber == null || roomNumber.trim().isEmpty()) return false;
+        return roomNumber.trim().matches("^R[0-9]{3}$");
+    }
     
     public static String sanitizeInput(String input) {
         return input == null ? "" : input.trim();

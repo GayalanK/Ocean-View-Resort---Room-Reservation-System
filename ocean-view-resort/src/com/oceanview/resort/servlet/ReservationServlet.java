@@ -3,6 +3,7 @@ package com.oceanview.resort.servlet;
 import com.oceanview.resort.model.Guest;
 import com.oceanview.resort.model.Reservation;
 import com.oceanview.resort.service.ReservationService;
+import com.oceanview.resort.util.ValidationUtil;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -111,6 +112,45 @@ public class ReservationServlet extends Servlet {
             if (name == null || roomNumber == null || checkInDate == null || checkOutDate == null) {
                 response.setStatus(400);
                 response.sendError(400, "Missing required fields: name, roomNumber, checkInDate, checkOutDate");
+                return;
+            }
+
+            name = ValidationUtil.sanitizeInput(name);
+            address = ValidationUtil.sanitizeInput(address);
+            contact = ValidationUtil.sanitizeInput(contact);
+            email = ValidationUtil.sanitizeInput(email);
+            nic = ValidationUtil.sanitizeInput(nic);
+            roomNumber = ValidationUtil.sanitizeInput(roomNumber);
+            checkInDate = ValidationUtil.sanitizeInput(checkInDate);
+            checkOutDate = ValidationUtil.sanitizeInput(checkOutDate);
+
+            if (!ValidationUtil.isValidName(name)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid guest name. Use letters and spaces only (minimum 2 characters)");
+                return;
+            }
+
+            if (contact == null || contact.isEmpty() || !ValidationUtil.isValidPhone(contact)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid contact number. Enter a 10-digit number");
+                return;
+            }
+
+            if (email != null && !email.isEmpty() && !ValidationUtil.isValidEmail(email)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid email format");
+                return;
+            }
+
+            if (!ValidationUtil.isValidRoomNumber(roomNumber)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid room number format. Example: R101");
+                return;
+            }
+
+            if (!ValidationUtil.isValidDate(checkInDate) || !ValidationUtil.isValidDate(checkOutDate)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid date format. Use YYYY-MM-DD");
                 return;
             }
             
