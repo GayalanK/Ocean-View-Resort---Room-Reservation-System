@@ -1,0 +1,346 @@
+package com.oceanview.resort.servlet;
+
+import com.oceanview.resort.model.Guest;
+import com.oceanview.resort.model.Reservation;
+import com.oceanview.resort.service.ReservationService;
+import com.oceanview.resort.util.ValidationUtil;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+/**
+ * Reservation Servlet - Handles reservation operations
+ * Supports GET (all/get by ID), POST (create), PUT (update), DELETE
+ */
+public class ReservationServlet extends Servlet {
+    private ReservationService reservationService = new ReservationService();
+
+    @Override
+    public void service(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String method = request.getMethod();
+
+        switch (method) {
+            case "GET":
+                doGet(request, response);
+                break;
+            case "POST":
+                doPost(request, response);
+                break;
+            case "PUT":
+                doPut(request, response);
+                break;
+            case "DELETE":
+                doDelete(request, response);
+                break;
+            default:
+                response.sendError(405, "Method " + method + " not allowed");
+        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        try {
+            String path = request.getPath();
+
+            // GET /api/reservations - Get all reservations
+            if (path.equals("/api/reservations") || path.equals("/reservations")) {
+                List<Reservation> reservations = reservationService.getAllReservations();
+                response.setStatus(200);
+                response.sendJSON(toJSONArray(reservations));
+            }
+            // GET /api/reservations/search?name=... - Search by guest name
+            // NOTE: This must be checked BEFORE the generic /{number} path below,
+            // otherwise "/api/reservations/search" matches startsWith("/api/reservations/")
+            // and treats "search" as a reservation number.
+            else if (path.startsWith("/api/reservations/search") || path.startsWith("/reservations/search")) {
+                String name = request.getParameter("name");
+
+                System.err.println("Database query failed, using file storage: " + name);
+                if (name == null || name.isEmpty()) {
+                    response.setStatus(400);
+                    response.sendError(400, "Query parameter 'name' is required");
+                    return;
+                }
+
+                List<Reservation> results = reservationService.searchByGuestName(name);
+                response.setStatus(200);
+                response.sendJSON(toJSONArray(results));
+            }
+            // GET /api/reservations/daterange?from=...&to=... - Filter by date range
+            else if (path.startsWith("/api/reservations/daterange") || path.startsWith("/reservations/daterange")) {
+                String fromDate = request.getParameter("from");
+                String toDate = request.getParameter("to");
+
+                if (fromDate == null || fromDate.isEmpty() || toDate == null || toDate.isEmpty()) {
+                    response.setStatus(400);
+                    response.sendError(400, "Query parameters 'from' and 'to' are required (YYYY-MM-DD)");
+                    return;
+                }
+
+                List<Reservation> results = reservationService.getReservationsByDateRange(fromDate, toDate);
+                response.setStatus(200);
+                response.sendJSON(toJSONArray(results));
+            }
+            // GET /api/reservations/{number} - Get reservation by number
+            else if (path.startsWith("/api/reservations/") || path.startsWith("/reservations/")) {
+                String number = extractPathParameter(path, "/api/reservations/", "/reservations/");
+                Reservation reservation = reservationService.getReservationByNumber(number);
+
+                if (reservation != null) {
+                    response.setStatus(200);
+                    response.sendJSON(toJSON(reservation));
+                } else {
+                    response.setStatus(404);
+                    response.sendError(404, "Reservation not found");
+                }
+            } else {
+                response.setStatus(404);
+                response.sendError(404, "Not found");
+            }
+
+        } catch (Exception e) {
+            response.setStatus(500);
+            response.sendError(500, "Internal server error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        try {
+            String body = request.getBody();
+            if (body == null || body.isEmpty()) {
+                response.setStatus(400);
+                response.sendError(400, "Request body is required");
+                return;
+            }
+
+            // Parse JSON body
+            Map<String, String> jsonData = parseJSON(body);
+
+            // Extract reservation data
+            String name = jsonData.get("name");
+            String address = jsonData.get("address");
+            String contact = jsonData.get("contact");
+            String email = jsonData.get("email");
+            String nic = jsonData.get("nic");
+            String roomNumber = jsonData.get("roomNumber");
+            String checkInDate = jsonData.get("checkInDate");
+            String checkOutDate = jsonData.get("checkOutDate");
+
+            // Validate required fields
+            if (name == null || roomNumber == null || checkInDate == null || checkOutDate == null) {
+                response.setStatus(400);
+                response.sendError(400, "Missing required fields: name, roomNumber, checkInDate, checkOutDate");
+                return;
+            }
+
+            name = ValidationUtil.sanitizeInput(name);
+            address = ValidationUtil.sanitizeInput(address);
+            contact = ValidationUtil.sanitizeInput(contact);
+            email = ValidationUtil.sanitizeInput(email);
+            nic = ValidationUtil.sanitizeInput(nic);
+            roomNumber = ValidationUtil.sanitizeInput(roomNumber);
+            checkInDate = ValidationUtil.sanitizeInput(checkInDate);
+            checkOutDate = ValidationUtil.sanitizeInput(checkOutDate);
+
+            if (!ValidationUtil.isValidName(name)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid guest name. Use letters and spaces only (minimum 2 characters)");
+                return;
+            }
+
+            if (contact == null || contact.isEmpty() || !ValidationUtil.isValidPhone(contact)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid contact number. Enter a 10-digit number");
+                return;
+            }
+
+            if (email != null && !email.isEmpty() && !ValidationUtil.isValidEmail(email)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid email format");
+                return;
+            }
+
+            if (!ValidationUtil.isValidRoomNumber(roomNumber)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid room number format. Example: R101");
+                return;
+            }
+
+            if (!ValidationUtil.isValidDate(checkInDate) || !ValidationUtil.isValidDate(checkOutDate)) {
+                response.setStatus(400);
+                response.sendError(400, "Invalid date format. Use YYYY-MM-DD");
+                return;
+            }
+
+            // Create guest object
+            Guest guest = new Guest(name, address, contact, email, nic);
+
+            // Create reservation
+            String reservationNumber = reservationService.createReservation(
+                    guest, roomNumber, checkInDate, checkOutDate);
+
+            response.setStatus(201);
+            String json = String.format(
+                    "{\"success\":true,\"reservationNumber\":\"%s\",\"message\":\"Reservation created successfully\"}",
+                    reservationNumber);
+            response.sendJSON(json);
+
+        } catch (IllegalArgumentException e) {
+            response.setStatus(400);
+            response.sendError(400, e.getMessage());
+        } catch (Exception e) {
+            response.setStatus(500);
+            response.sendError(500, "Internal server error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        try {
+            String path = request.getPath();
+
+            // PUT /api/reservations/cancel/{number} - Cancel reservation
+            if (path.startsWith("/api/reservations/cancel/") || path.startsWith("/reservations/cancel/")) {
+                String number = extractPathParameter(path, "/api/reservations/cancel/", "/reservations/cancel/");
+
+                if (number == null || number.isEmpty()) {
+                    response.setStatus(400);
+                    response.sendError(400, "Reservation number is required");
+                    return;
+                }
+
+                Reservation cancelled = reservationService.cancelReservation(number);
+
+                if (cancelled != null) {
+                    response.setStatus(200);
+                    String json = String.format(
+                            "{\"success\":true,\"message\":\"Reservation %s has been cancelled\",\"reservation\":%s}",
+                            escape(number), toJSON(cancelled));
+                    response.sendJSON(json);
+                } else {
+                    response.setStatus(404);
+                    response.sendError(404, "Reservation not found");
+                }
+            } else {
+                response.setStatus(404);
+                response.sendError(404, "Not found");
+            }
+
+        } catch (IllegalArgumentException e) {
+            response.setStatus(400);
+            response.sendError(400, e.getMessage());
+        } catch (Exception e) {
+            response.setStatus(500);
+            response.sendError(500, "Internal server error: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        // Delete reservation - not implemented in basic version
+        response.setStatus(501);
+        response.sendError(501, "Delete operation not yet implemented");
+    }
+
+    /**
+     * Extract path parameter from URL
+     */
+    private String extractPathParameter(String path, String... prefixes) {
+        for (String prefix : prefixes) {
+            if (path.startsWith(prefix)) {
+                return path.substring(prefix.length());
+            }
+        }
+        return "";
+    }
+
+    /**
+     * Parse JSON string to Map
+     */
+    private Map<String, String> parseJSON(String json) {
+        Map<String, String> result = new HashMap<>();
+        if (json == null || json.trim().isEmpty()) {
+            return result;
+        }
+
+        json = json.trim().replaceAll("^\\{", "").replaceAll("\\}$", "");
+        String[] pairs = json.split(",");
+
+        for (String pair : pairs) {
+            String[] keyValue = pair.split(":", 2);
+            if (keyValue.length == 2) {
+                String key = keyValue[0].trim().replaceAll("\"", "");
+                String value = keyValue[1].trim().replaceAll("\"", "");
+                result.put(key, value);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Convert Reservation to JSON
+     */
+    private String toJSON(Reservation r) {
+        if (r == null)
+            return "{}";
+
+        return String.format(
+                "{\"reservationNumber\":\"%s\"," +
+                        "\"guestName\":\"%s\"," +
+                        "\"guestAddress\":\"%s\"," +
+                        "\"guestContact\":\"%s\"," +
+                        "\"guestEmail\":\"%s\"," +
+                        "\"roomNumber\":\"%s\"," +
+                        "\"roomType\":\"%s\"," +
+                        "\"checkInDate\":\"%s\"," +
+                        "\"checkOutDate\":\"%s\"," +
+                        "\"numberOfNights\":%d," +
+                        "\"totalAmount\":%.2f," +
+                        "\"status\":\"%s\"," +
+                        "\"reservationDate\":\"%s\"}",
+                escape(r.getReservationNumber()),
+                escape(r.getGuest() != null ? r.getGuest().getName() : ""),
+                escape(r.getGuest() != null ? r.getGuest().getAddress() : ""),
+                escape(r.getGuest() != null ? r.getGuest().getContactNumber() : ""),
+                escape(r.getGuest() != null ? r.getGuest().getEmail() : ""),
+                escape(r.getRoom() != null ? r.getRoom().getRoomNumber() : ""),
+                r.getRoom() != null ? r.getRoom().getRoomType().getDescription() : "",
+                r.getCheckInDate() != null ? r.getCheckInDate().toString() : "",
+                r.getCheckOutDate() != null ? r.getCheckOutDate().toString() : "",
+                r.getNumberOfNights(),
+                r.getTotalAmount(),
+                escape(r.getStatus()),
+                r.getReservationDate() != null ? r.getReservationDate().toString() : "");
+    }
+
+    /**
+     * Convert List of Reservations to JSON array
+     */
+    private String toJSONArray(List<Reservation> reservations) {
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < reservations.size(); i++) {
+            if (i > 0)
+                json.append(",");
+            json.append(toJSON(reservations.get(i)));
+        }
+        json.append("]");
+        return json.toString();
+    }
+
+    /**
+     * Escape JSON string
+     */
+    private String escape(String str) {
+        if (str == null)
+            return "";
+        return str.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+    }
+}
