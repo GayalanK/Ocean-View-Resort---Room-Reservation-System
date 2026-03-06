@@ -13,7 +13,7 @@ public class RoomDAO {
     private static final String FILENAME = "rooms.dat";
     private FileManager fileManager = FileManager.getInstance();
     private DatabaseConnection dbConnection = DatabaseConnection.getInstance();
-    
+
     public void save(Room room) throws IOException, ClassNotFoundException {
         // Try database first
         if (dbConnection.isDatabaseAvailable()) {
@@ -24,20 +24,20 @@ public class RoomDAO {
                 System.err.println("Database save failed, using file storage: " + e.getMessage());
             }
         }
-        
+
         // Fallback to file storage
         saveToFile(room);
     }
-    
+
     private void saveToDatabase(Room room) throws SQLException {
         Connection conn = dbConnection.getConnection();
-        
+
         // Check if room exists
         try (PreparedStatement check = conn.prepareStatement(
-            "SELECT room_number FROM rooms WHERE room_number = ?")) {
+                "SELECT room_number FROM rooms WHERE room_number = ?")) {
             check.setString(1, room.getRoomNumber());
             ResultSet rs = check.executeQuery();
-            
+
             if (rs.next()) {
                 // Update existing
                 updateInDatabase(room);
@@ -47,41 +47,41 @@ public class RoomDAO {
             }
         }
     }
-    
+
     private void insertIntoDatabase(Room room) throws SQLException {
         Connection conn = dbConnection.getConnection();
         try (PreparedStatement ps = conn.prepareStatement(
-            "INSERT INTO rooms (room_number, room_type, is_available, capacity, features, base_rate) " +
-            "VALUES (?, ?, ?, ?, ?, ?)")) {
-            
+                "INSERT INTO rooms (room_number, room_type, is_available, capacity, features, base_rate) " +
+                        "VALUES (?, ?, ?, ?, ?, ?)")) {
+
             ps.setString(1, room.getRoomNumber());
             ps.setString(2, room.getRoomType() != null ? room.getRoomType().name() : "SINGLE");
             ps.setBoolean(3, room.isAvailable());
             ps.setInt(4, room.getCapacity());
             ps.setString(5, room.getFeatures());
             ps.setDouble(6, room.getRate());
-            
+
             ps.executeUpdate();
         }
     }
-    
+
     private void updateInDatabase(Room room) throws SQLException {
         Connection conn = dbConnection.getConnection();
         try (PreparedStatement ps = conn.prepareStatement(
-            "UPDATE rooms SET room_type = ?, is_available = ?, capacity = ?, features = ?, base_rate = ? " +
-            "WHERE room_number = ?")) {
-            
+                "UPDATE rooms SET room_type = ?, is_available = ?, capacity = ?, features = ?, base_rate = ? " +
+                        "WHERE room_number = ?")) {
+
             ps.setString(1, room.getRoomType() != null ? room.getRoomType().name() : "SINGLE");
             ps.setBoolean(2, room.isAvailable());
             ps.setInt(3, room.getCapacity());
             ps.setString(4, room.getFeatures());
             ps.setDouble(5, room.getRate());
             ps.setString(6, room.getRoomNumber());
-            
+
             ps.executeUpdate();
         }
     }
-    
+
     private void saveToFile(Room room) throws IOException, ClassNotFoundException {
         List<Room> rooms = findAllFromFile();
         for (int i = 0; i < rooms.size(); i++) {
@@ -94,7 +94,7 @@ public class RoomDAO {
         rooms.add(room);
         fileManager.writeListToFile(rooms, FILENAME);
     }
-    
+
     public Room findByRoomNumber(String roomNumber) throws IOException, ClassNotFoundException {
         // Try database first
         if (dbConnection.isDatabaseAvailable()) {
@@ -104,27 +104,27 @@ public class RoomDAO {
                 System.err.println("Database query failed, using file storage: " + e.getMessage());
             }
         }
-        
+
         // Fallback to file storage
-        return findAllFromFile().stream()
-            .filter(r -> r.getRoomNumber().equals(roomNumber))
-            .findFirst().orElse(null);
+        return findAll().stream()
+                .filter(r -> r.getRoomNumber().equals(roomNumber))
+                .findFirst().orElse(null);
     }
-    
+
     private Room findFromDatabase(String roomNumber) throws SQLException {
         Connection conn = dbConnection.getConnection();
         try (PreparedStatement ps = conn.prepareStatement(
-            "SELECT * FROM rooms WHERE room_number = ?")) {
+                "SELECT * FROM rooms WHERE room_number = ?")) {
             ps.setString(1, roomNumber);
             ResultSet rs = ps.executeQuery();
-            
+
             if (rs.next()) {
                 return mapResultSetToRoom(rs);
             }
         }
         return null;
     }
-    
+
     public List<Room> findAll() throws IOException, ClassNotFoundException {
         // Try database first
         if (dbConnection.isDatabaseAvailable()) {
@@ -134,7 +134,7 @@ public class RoomDAO {
                 System.err.println("Database query failed, using file storage: " + e.getMessage());
             }
         }
-        
+
         // Fallback to file storage
         List<Room> rooms = findAllFromFile();
         if (rooms.isEmpty()) {
@@ -143,24 +143,24 @@ public class RoomDAO {
         }
         return rooms;
     }
-    
+
     private List<Room> findAllFromDatabase() throws SQLException {
         List<Room> rooms = new ArrayList<>();
         Connection conn = dbConnection.getConnection();
         try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM rooms ORDER BY room_number")) {
-            
+                ResultSet rs = stmt.executeQuery("SELECT * FROM rooms ORDER BY room_number")) {
+
             while (rs.next()) {
                 rooms.add(mapResultSetToRoom(rs));
             }
         }
         return rooms;
     }
-    
+
     private List<Room> findAllFromFile() throws IOException, ClassNotFoundException {
         return fileManager.readListFromFile(FILENAME);
     }
-    
+
     public List<Room> findAvailableRooms() throws IOException, ClassNotFoundException {
         // Try database first
         if (dbConnection.isDatabaseAvailable()) {
@@ -170,25 +170,25 @@ public class RoomDAO {
                 System.err.println("Database query failed, using file storage: " + e.getMessage());
             }
         }
-        
+
         // Fallback to file storage
         return findAll().stream().filter(Room::isAvailable).collect(Collectors.toList());
     }
-    
+
     private List<Room> findAvailableFromDatabase() throws SQLException {
         List<Room> rooms = new ArrayList<>();
         Connection conn = dbConnection.getConnection();
         try (PreparedStatement ps = conn.prepareStatement(
-            "SELECT * FROM rooms WHERE is_available = true ORDER BY room_number")) {
+                "SELECT * FROM rooms WHERE is_available = true ORDER BY room_number")) {
             ResultSet rs = ps.executeQuery();
-            
+
             while (rs.next()) {
                 rooms.add(mapResultSetToRoom(rs));
             }
         }
         return rooms;
     }
-    
+
     private Room mapResultSetToRoom(ResultSet rs) throws SQLException {
         String roomTypeStr = rs.getString("room_type");
         Room.RoomType roomType = Room.RoomType.SINGLE;
@@ -197,18 +197,17 @@ public class RoomDAO {
         } catch (Exception e) {
             // Use default
         }
-        
+
         Room room = new Room(
-            rs.getString("room_number"),
-            roomType,
-            rs.getBoolean("is_available"),
-            rs.getInt("capacity"),
-            rs.getString("features")
-        );
-        
+                rs.getString("room_number"),
+                roomType,
+                rs.getBoolean("is_available"),
+                rs.getInt("capacity"),
+                rs.getString("features"));
+
         return room;
     }
-    
+
     private void initializeDefaultRooms() throws IOException, ClassNotFoundException {
         List<Room> rooms = new ArrayList<>();
         for (int i = 101; i <= 110; i++) {

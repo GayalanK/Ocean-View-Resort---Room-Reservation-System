@@ -7,8 +7,13 @@ import java.io.IOException;
 public class AuthenticationService {
     private UserDAO userDAO = new UserDAO();
     private User currentUser;
-    
+
     public boolean login(String username, String password) throws IOException, ClassNotFoundException {
+        if (username == null || password == null)
+            return false;
+        username = username.trim().toLowerCase();
+        password = password.trim();
+
         User user = userDAO.findByUsername(username);
         if (user != null && user.getPassword().equals(password)) {
             currentUser = user;
@@ -16,15 +21,15 @@ public class AuthenticationService {
         }
         return false;
     }
-    
+
     public void logout() {
         currentUser = null;
     }
-    
+
     public boolean isAuthenticated() {
         return currentUser != null;
     }
-    
+
     public User getCurrentUser() {
         return currentUser;
     }

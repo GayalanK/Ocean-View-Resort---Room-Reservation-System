@@ -9,18 +9,18 @@ import java.util.HashMap;
  */
 public class LoginServlet extends Servlet {
     private AuthenticationService authService = new AuthenticationService();
-    
+
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String method = request.getMethod();
-        
+
         if ("POST".equals(method)) {
             doPost(request, response);
         } else {
             response.sendError(405, "Method " + method + " not allowed");
         }
     }
-    
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws Exception {
         try {
@@ -30,44 +30,47 @@ public class LoginServlet extends Servlet {
                 response.sendError(400, "Request body is required");
                 return;
             }
-            
+
             // Parse JSON body
             Map<String, String> jsonData = parseJSON(body);
             String username = jsonData.get("username");
             String password = jsonData.get("password");
-            
+
             if (username == null || password == null || username.isEmpty() || password.isEmpty()) {
                 response.setStatus(400);
                 response.sendError(400, "Username and password are required");
                 return;
             }
-            
+
             // Authenticate user
             if (authService.login(username, password)) {
                 // Generate session ID
                 String sessionId = "sess_" + System.currentTimeMillis() + "_" + username.hashCode();
                 request.setSessionId(sessionId);
-                
-                // Success response
+
+                // Get user details
+                String role = authService.getCurrentUser().getRole();
+                String fullName = authService.getCurrentUser().getFullName();
+
+                // Success response with role info
                 response.setStatus(200);
                 String json = String.format(
-                    "{\"success\":true,\"session\":\"%s\",\"username\":\"%s\",\"message\":\"Login successful\"}",
-                    sessionId, username
-                );
+                        "{\"success\":true,\"session\":\"%s\",\"username\":\"%s\",\"role\":\"%s\",\"fullName\":\"%s\",\"message\":\"Login successful\"}",
+                        sessionId, username, role != null ? role : "STAFF", fullName != null ? fullName : username);
                 response.sendJSON(json);
             } else {
                 // Authentication failed
                 response.setStatus(401);
                 response.sendError(401, "Invalid username or password");
             }
-            
+
         } catch (Exception e) {
             response.setStatus(500);
             response.sendError(500, "Internal server error: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Simple JSON parser for request body
      */
@@ -76,10 +79,10 @@ public class LoginServlet extends Servlet {
         if (json == null || json.trim().isEmpty()) {
             return result;
         }
-        
+
         // Remove braces
         json = json.trim().replaceAll("^\\{", "").replaceAll("\\}$", "");
-        
+
         // Split by comma
         String[] pairs = json.split(",");
         for (String pair : pairs) {
