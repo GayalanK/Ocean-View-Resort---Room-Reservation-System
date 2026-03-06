@@ -544,7 +544,7 @@ This is an educational project. For modifications:
 
 - **Module:** CIS6003 Advanced Programming
 - **Assessment:** WRIT1 - Online Room Reservation System
-- **Institution:** [Your Institution Name]
+- **Institution:** Cardiff Metropolitan University
 - **Year:** 2024
 
 ---
@@ -584,30 +584,8 @@ For issues or questions:
 
 ---
 
-## ✅ Assessment Requirements Checklist
-
-This project fulfills all CIS6003 assessment requirements:
-
-- ✅ **Java Programming** - Pure Java implementation
-- ✅ **Menu-driven Interface** - User-friendly console menu
-- ✅ **User Authentication** - Secure login system
-- ✅ **Add Reservation** - Complete booking functionality
-- ✅ **Display Reservations** - View booking details
-- ✅ **Calculate Bill** - Automatic bill generation
-- ✅ **Help Section** - Comprehensive help guide
-- ✅ **Exit Functionality** - Safe application closure
-- ✅ **Distributed Application** - RESTful web services
-- ✅ **Design Patterns** - 4 patterns implemented
-- ✅ **Database** - File-based persistent storage
-- ✅ **Testing** - TDD approach with automation
-- ✅ **UML Diagrams** - Complete documentation
-- ✅ **GitHub Repository** - Version control with CI/CD
-- ✅ **Documentation** - ~4000 words total
-
----
-
 **Version:** 1.0.0  
-**Last Updated:** February 2026
+**Last Updated:** March 2026
 **Status:** ✅ Complete and Ready for Submission
 
 ---
